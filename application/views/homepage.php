@@ -20,6 +20,7 @@ foreach($video_list as $video): ?>
 		</video>
 <!--		<p>--><?php //echo $video['video_name']?><!--</p>-->
 	</td>
+	<br/>
 	<?php $k++;
 	if($k%3==0)
 		echo "<tr>";
