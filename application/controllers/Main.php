@@ -17,6 +17,7 @@ class main extends CI_Controller
 			'url'
 		));
 		$this->load->library(array(
+			'form_validation',
 			'session'
 		));
 	}
@@ -29,8 +30,11 @@ class main extends CI_Controller
 	public function homepage()
 	{
 		$this->load_navbar();
-//		$this->load->view('homepage');
-		$this->display_videos();
+		$video_list = $this->_main->get_videos();
+		print_r($video_list);
+		$this->load->view('homepage', array(
+			'video_list' => $video_list
+		));
 	}
 
 	public function login()
@@ -79,25 +83,20 @@ class main extends CI_Controller
 		$this->session->unset_userdata('password');
 		$this->session->unset_userdata('name');
 		$this->session->unset_userdata('birthday');
-		$this->load_navbar();
-		$this->load->view('homepage');
+		$this->homepage();
 	}
 
 	public function login_submit()
 	{
 		$data = array(
 			'email' => $this->input->post('email'),
-			'password' => $this->input->post('password')
+			'password' => $this->input->post('password'),
+			'remember-me' => $this->input->post('remember-me')
 		);
 
 		$user = $this->_main->verify_user($data['email'], $data['password']);
 
-		if ($user == FALSE) {
-			$this->session->set_flashdata('error', 'Invalid username or password');
-			$this->load_navbar();
-			$this->load->view('login');
-		} else {
-			print_r($user);
+		if (get_cookie('email') != '' && get_cookie('password') != '') {
 			$session_data = array(
 				'user_id' => $user[0]['user_id'],
 				'email' => $user[0]['email'],
@@ -106,8 +105,36 @@ class main extends CI_Controller
 				'birthday' => $user[0]['birthday']
 			);
 			$this->session->set_userdata($session_data);
-			$this->load_navbar();
-			$this->load->view('homepage');
+
+			$this->homepage();
+
+		} else {
+
+			if ($user == FALSE) {
+				$this->session->set_flashdata('error', 'Invalid username or password');
+				$this->load_navbar();
+				$this->load->view('login');
+			} else {
+
+				if ($data['remember-me']) {
+					set_cookie('email', $data['email']);
+					set_cookie('password', $data['password']);
+				} else {
+					delete_cookie('email');
+					delete_cookie('password');
+				}
+
+				$session_data = array(
+					'user_id' => $user[0]['user_id'],
+					'email' => $user[0]['email'],
+					'password' => $user[0]['password'],
+					'name' => $user[0]['name'],
+					'birthday' => $user[0]['birthday']
+				);
+				$this->session->set_userdata($session_data);
+
+				$this->homepage();
+			}
 		}
 	}
 
@@ -124,12 +151,14 @@ class main extends CI_Controller
 		if ($this->_main->user_exists($data['email'])) {
 			$this->session->set_flashdata('error', 'Email already exists');
 			$this->load_navbar();
-			$this->load->view('signup');
+			$this->signup();
+		} elseif ($data['birthday'] > date('Y-m-d')) {
+			$this->session->set_flashdata('error', 'Birthday is invalid');
+			$this->signup();
 		} else {
 			$this->_main->insert_user($data);
 			$this->session->set_userdata($data);
-			$this->load_navbar();
-			$this->load->view('homepage');
+			$this->homepage();
 		}
 
 	}
@@ -166,15 +195,6 @@ class main extends CI_Controller
 			$this->load_navbar();
 			$this->load->view('upload', $data);
 		}
-	}
-
-	public function display_videos()
-	{
-		$video_list = $this->_main->get_videos();
-		print_r($video_list);
-		$this->load->view('homepage', array(
-			'video_list' => $video_list
-		));
 	}
 
 	public function change_email()

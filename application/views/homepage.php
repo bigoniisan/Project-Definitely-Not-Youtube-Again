@@ -12,7 +12,8 @@ if (isset($_SESSION['name'])) {
 
 <!--this variable to display 3 videos per row-->
 <?php $k=0 ?>
-<?php foreach($video_list as $video): ?>
+<?php if (isset($video_list))
+foreach($video_list as $video): ?>
 	<td>
 		<video id="video" class="video-js vjs-default-skin" width="320" height="180" controls>
 			<source src="<?php echo $video['filepath'];?>">
