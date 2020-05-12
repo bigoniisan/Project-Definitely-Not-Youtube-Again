@@ -38,6 +38,20 @@ class _main extends CI_Model
 		$this->db->insert('users', $data);
 	}
 
+	public function get_all_emails()
+	{
+		$this->db->select('email');
+		$query = $this->db->get('users');
+		return $query->result_array();
+	}
+
+	public function get_user_details($data=array())
+	{
+		$this->db->where('email', $data['email']);
+		$query = $this->db->get('users');
+		return $query->result_array();
+	}
+
 	public function users_count()
 	{
 		$query = $this->db->get('users');

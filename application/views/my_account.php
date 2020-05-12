@@ -4,6 +4,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <h1>My Account</h1>
 
+<a href="profile_image_upload">
+	Profile Image Upload
+</a>
+
 <?php echo '<h2>User ID: '.$_SESSION['user_id'].'</h2>';?>
 
 <?php echo '<h2>Email: '.$_SESSION['email'].'</h2>';?>
@@ -33,3 +37,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <?php echo $this->session->flashdata("error"); ?>
 
 <a href="password_reset">Change Password</a>
+
+

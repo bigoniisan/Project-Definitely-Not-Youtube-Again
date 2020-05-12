@@ -51,6 +51,8 @@ class main extends CI_Controller
 
 	public function my_account()
 	{
+//		$data['users'] = $this->_main->get_all_emails();
+
 		$this->load_navbar();
 		$this->load->view('my_account');
 	}
@@ -65,6 +67,13 @@ class main extends CI_Controller
 	{
 		$this->load_navbar();
 		$this->load->view('password_reset');
+	}
+
+	public function profile_image_upload()
+	{
+		$data['title'] = "Upload Image using Ajax JQuery in CodeIgniter";
+		$this->load_navbar();
+		$this->load->view('profile_image_upload', $data);
 	}
 
 	public function load_navbar()
@@ -166,6 +175,25 @@ class main extends CI_Controller
 	public function reset_password()
 	{
 		$email = $this->input->post('email');
+	}
+
+	public function ajax_upload()
+	{
+		if(isset($_FILES["image_file"]["name"]))
+		{
+			$config['upload_path'] = './image_upload/';
+			$config['allowed_types'] = 'jpg|jpeg|png|gif';
+			$this->load->library('upload', $config);
+			if(!$this->upload->do_upload('image_file'))
+			{
+				echo $this->upload->display_errors();
+			}
+			else
+			{
+				$data = $this->upload->data();
+				echo '<img src="'.base_url().'image_upload/'.$data["file_name"].'" width="300" height="225" class="img-thumbnail" />';
+			}
+		}
 	}
 
 	public function upload_video()
