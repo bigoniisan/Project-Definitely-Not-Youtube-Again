@@ -38,14 +38,37 @@ class _main extends CI_Model
 		$this->db->insert('users', $data);
 	}
 
-	public function generate_user_id()
-	{
-		return $this->users_count() + 1;
-	}
-
 	public function users_count()
 	{
 		$query = $this->db->get('users');
 		return $query->num_rows();
 	}
+
+	public function generate_user_id()
+	{
+		return $this->users_count() + 1;
+	}
+
+	public function insert_video($data)
+	{
+		$this->db->insert('videos', $data);
+	}
+
+	public function videos_count()
+	{
+		$query = $this->db->get('videos');
+		return $query->num_rows();
+	}
+
+	public function generate_video_id()
+	{
+		return $this->videos_count() + 1;
+	}
+
+	public function get_videos()
+	{
+		$query = $this->db->get('videos');
+		return $query->result_array();
+	}
+
 }

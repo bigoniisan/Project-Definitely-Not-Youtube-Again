@@ -4,6 +4,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class main extends CI_Controller
 {
 
+//	private $_main;
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -27,7 +29,8 @@ class main extends CI_Controller
 	public function homepage()
 	{
 		$this->load_navbar();
-		$this->load->view('homepage');
+//		$this->load->view('homepage');
+		$this->display_videos();
 	}
 
 	public function login()
@@ -153,15 +156,25 @@ class main extends CI_Controller
 		} else {
 			$upload_data = $this->upload->data();
 			$data = array(
-				'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
-				'upload_data' => $this->upload->data()
+				'video_id' => $this->_main->generate_video_id(),
+				'video_name' => $upload_data['raw_name'],
+				'filepath' => base_url() . 'uploads/' . $upload_data['file_name']
 			);
-			print_r($data['upload_data']);
+			$this->_main->insert_video($data);
+
+			print_r($upload_data);
 			$this->load_navbar();
 			$this->load->view('upload', $data);
 		}
+	}
 
-
+	public function display_videos()
+	{
+		$video_list = $this->_main->get_videos();
+		print_r($video_list);
+		$this->load->view('homepage', array(
+			'video_list' => $video_list
+		));
 	}
 
 	public function change_email()

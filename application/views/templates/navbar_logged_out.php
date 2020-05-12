@@ -7,9 +7,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		Homepage
 	</a>
 	<input type="search" id="search" name="search" placeholder="Search">
-	<a href="upload">
-		Upload
-	</a>
 	<a href="signup">
 		Signup
 	</a>
