@@ -85,4 +85,10 @@ class _main extends CI_Model
 		return $query->result_array();
 	}
 
+	public function set_user_profile_image($data)
+	{
+		$this->db->where('user_id', $data['user_id']);
+		$this->db->update('users', $data);
+	}
+
 }

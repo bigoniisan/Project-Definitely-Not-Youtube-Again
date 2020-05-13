@@ -4,9 +4,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <h1>My Account</h1>
 
-<a href="profile_image_upload">
-	Profile Image Upload
-</a>
+<?php echo form_open_multipart('main/image_upload');?>
+<form class="dropzone" id="fileupload">
+	<label>Profile Image Upload</label><br/>
+	<input type="file" id="profile-image" name="profile-image"/>
+	<input type="submit" id="submit" name="submit" value="Upload Profile Image"/>
+</form>
+
+<div id="profile-image" >
+	<h3>Profile Image: </h3>
+	<?php if (isset($profile_image_filepath)) ?>
+	<img src='<?php echo $profile_image_filepath;?>' width="90" height="60"/>
+</div>
 
 <?php echo '<h2>User ID: '.$_SESSION['user_id'].'</h2>';?>
 
@@ -40,7 +49,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <?php echo form_open('main/send_email'); ?>
 <form>
-	<label>Send email for some reason</label>
 	<input type="email" id="send-email" name="send-email"/>
 	<input type="submit" name="submit" value="Send email for some reason"/>
 </form>

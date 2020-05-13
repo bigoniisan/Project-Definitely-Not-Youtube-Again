@@ -26,22 +26,3 @@ foreach($video_list as $video): ?>
 		echo "<tr>";
 	?>
 <?php endforeach; ?>
-
-
-<?php //$k=0?><!--  //this variable to diplsay 3 videos per row-->
-<?php //foreach ($videos as $video): ?>
-<!--	<td>-->
-<!--		<video id="video1" class="video-js vjs-default-skin" width="320" height="240"-->
-<!--			   data-setup='{"controls" : true, "autoplay" : false, "preload" : "auto"}'>-->
-<!--			<source src="http://localhost/projectname/uploads/--><?php //echo $video->filename; ?><!--" >-->
-<!---->
-<!--		</video>-->
-<!--	</td>-->
-<!---->
-<!--	--><?php //$k++;
-//	if($k%3==0)
-//		echo"<tr>";
-//
-//	?>
-<!---->
-<?php //endforeach; ?>

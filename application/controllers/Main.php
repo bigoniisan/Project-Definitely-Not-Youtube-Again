@@ -197,10 +197,6 @@ class main extends CI_Controller
 
 	public function upload_video()
 	{
-		$data = array(
-			'video' => $this->input->post('userfile')
-		);
-
 		$config['upload_path'] = './uploads';
 		$config['allowed_types'] = 'mp4';
 		$this->load->library('upload', $config);
@@ -221,6 +217,29 @@ class main extends CI_Controller
 			print_r($upload_data);
 			$this->load_navbar();
 			$this->load->view('upload', $data);
+		}
+	}
+
+	public function image_upload()
+	{
+		$config['upload_path'] = './images/';
+		$config['allowed_types'] = 'jpg|jpeg|gif|png';
+		$this->load->library('upload', $config);
+
+		if (!$this->upload->do_upload('profile-image')) {
+			$this->session->set_flashdata('error', $this->upload->display_errors());
+			$this->load_navbar();
+			$this->load->view('my_account');
+		} else {
+			$upload_data = $this->upload->data();
+			$data = array(
+				'user_id' => $this->session->userdata('user_id'),
+				'profile_image_filepath' => base_url() . 'images/' . $upload_data['file_name']
+			);
+			$this->_main->set_user_profile_image($data);
+
+			$this->load_navbar();
+			$this->load->view('my_account', $data);
 		}
 	}
 
