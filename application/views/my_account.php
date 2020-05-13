@@ -38,4 +38,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <a href="password_reset">Change Password</a>
 
-
+<?php echo form_open('main/send_email'); ?>
+<form>
+	<label>Send email for some reason</label>
+	<input type="email" id="send-email" name="send-email"/>
+	<input type="submit" name="submit" value="Send email for some reason"/>
+</form>

@@ -169,7 +169,6 @@ class main extends CI_Controller
 			$this->session->set_userdata($data);
 			$this->homepage();
 		}
-
 	}
 
 	public function reset_password()
@@ -222,6 +221,39 @@ class main extends CI_Controller
 			print_r($upload_data);
 			$this->load_navbar();
 			$this->load->view('upload', $data);
+		}
+	}
+
+	public function send_email()
+	{
+		$to_email = $this->input->post('send-email');
+
+		$config = array(
+			'protocol' => 'smtp',
+			'smtp_host' => 'ssl://smtp.googlemail.com',
+			'smtp_port' => 465,
+			'smtp_user' => '94546302pp@gmail.com',
+			'smtp_pass' => 'asd123qwe!',
+			'mailtype' => 'html',
+			'starttls' => true
+		);
+		$this->load->library('email', $config);
+
+		$this->email->from('94546302pp@gmail.com', 'SupaSexy 69');
+//		$this->email->to('misterimouto@gmail.com');
+		$this->email->to('94546302pp@gmail.com');
+//		$this->email->to($to_email);
+		$this->email->subject('Email Test');
+		$this->email->message('Testing the email class.');
+
+//		$this->email->send();
+
+		if($this->email->send()) {
+			$this->session->set_flashdata("email_sent","Congratulation Email Send Successfully.");
+			$this->my_account();
+		} else {
+			$this->session->set_flashdata("email_sent","You have encountered an error");
+			$this->my_account();
 		}
 	}
 
