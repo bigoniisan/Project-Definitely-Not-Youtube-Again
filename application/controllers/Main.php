@@ -51,8 +51,6 @@ class main extends CI_Controller
 
 	public function my_account()
 	{
-//		$data['users'] = $this->_main->get_all_emails();
-
 		$this->load_navbar();
 		$this->load->view('my_account');
 	}
@@ -154,7 +152,8 @@ class main extends CI_Controller
 			'email' => $this->input->post('email'),
 			'password' => $this->input->post('password'),
 			'name' => $this->input->post('name'),
-			'birthday' => $this->input->post('birthday')
+			'birthday' => $this->input->post('birthday'),
+			'is_verified' => FALSE
 		);
 
 		if ($this->_main->user_exists($data['email'])) {
@@ -165,6 +164,11 @@ class main extends CI_Controller
 			$this->session->set_flashdata('error', 'Birthday is invalid');
 			$this->signup();
 		} else {
+			// signup success
+
+			// send verification email
+			$this->send_email($data['email']);
+
 			$this->_main->insert_user($data);
 			$this->session->set_userdata($data);
 			$this->homepage();
@@ -227,7 +231,7 @@ class main extends CI_Controller
 		$this->load->library('upload', $config);
 
 		if (!$this->upload->do_upload('profile-image')) {
-			$this->session->set_flashdata('error', $this->upload->display_errors());
+			$this->session->set_flashdata('image_upload_error', $this->upload->display_errors());
 			$this->load_navbar();
 			$this->load->view('my_account');
 		} else {
@@ -243,37 +247,24 @@ class main extends CI_Controller
 		}
 	}
 
-	public function send_email()
+	public function send_email($email)
 	{
-		$to_email = $this->input->post('send-email');
-
 		$config = array(
 			'protocol' => 'smtp',
-			'smtp_host' => 'ssl://smtp.googlemail.com',
-			'smtp_port' => 465,
-			'smtp_user' => '94546302pp@gmail.com',
-			'smtp_pass' => 'asd123qwe!',
+			'smtp_host' => 'mailhub.eait.uq.edu.au',
+			'smtp_port' => 25,
 			'mailtype' => 'html',
-			'starttls' => true
+			'charset' => 'iso-8859-1',
+			'wordwrap' => TRUE
 		);
 		$this->load->library('email', $config);
 
-		$this->email->from('94546302pp@gmail.com', 'SupaSexy 69');
-//		$this->email->to('misterimouto@gmail.com');
-		$this->email->to('94546302pp@gmail.com');
-//		$this->email->to($to_email);
+		$this->email->from('noreply@infs3202-78c24710.uqcloud.net');
+		$this->email->to($email);
 		$this->email->subject('Email Test');
 		$this->email->message('Testing the email class.');
 
-//		$this->email->send();
-
-		if($this->email->send()) {
-			$this->session->set_flashdata("email_sent","Congratulation Email Send Successfully.");
-			$this->my_account();
-		} else {
-			$this->session->set_flashdata("email_sent","You have encountered an error");
-			$this->my_account();
-		}
+		$this->email->send();
 	}
 
 	public function change_email()
@@ -282,10 +273,14 @@ class main extends CI_Controller
 			'email' => $this->input->post('change-email')
 		);
 
-		$user_id = $this->session->userdata('user_id');
-		$this->_main->update_user($user_id, $data);
-
-		$this->session->set_userdata($data);
+		if (!$this->_main->user_exists($data['email'])) {
+			$user_id = $this->session->userdata('user_id');
+			$this->session->set_userdata($data);
+			$this->_main->update_user($user_id, $data);
+			$this->session->set_flashdata("change_email_error","Email changed successfully");
+		} else {
+			$this->session->set_flashdata("change_email","Error: Email already exists");
+		}
 		redirect(base_url() . 'main/my_account');
 	}
 
@@ -297,8 +292,8 @@ class main extends CI_Controller
 
 		$user_id = $this->session->userdata('user_id');
 		$this->_main->update_user($user_id, $data);
-
 		$this->session->set_userdata($data);
+		$this->session->set_flashdata("change_name_error","Name changed successfully");
 		redirect(base_url() . 'main/my_account');
 	}
 
@@ -308,10 +303,14 @@ class main extends CI_Controller
 			'birthday' => $this->input->post('change-birthday')
 		);
 
-		$user_id = $this->session->userdata('user_id');
-		$this->_main->update_user($user_id, $data);
-
-		$this->session->set_userdata($data);
+		if ($data['birthday'] < date('Y-m-d')) {
+			$user_id = $this->session->userdata('user_id');
+			$this->_main->update_user($user_id, $data);
+			$this->session->set_userdata($data);
+			$this->session->set_flashdata("change_birthday_error","Birthday changed successfully");
+		} else {
+			$this->session->set_flashdata("change_birthday","Error: invalid birthday");
+		}
 		redirect(base_url() . 'main/my_account');
 	}
 

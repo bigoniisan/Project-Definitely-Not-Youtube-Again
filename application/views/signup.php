@@ -19,6 +19,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<input type="date" id="birthday" name="birthday" required/>
 	<br/>
 
-	<input type="submit" id="submit" name="submit" value="Log In"/>
+	<input type="submit" id="submit" name="submit" value="Sign Up"/>
 </form>
 <?php echo $this->session->flashdata("error"); ?>
