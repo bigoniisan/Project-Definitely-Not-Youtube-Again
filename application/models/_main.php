@@ -91,4 +91,14 @@ class _main extends CI_Model
 		$this->db->update('users', $data);
 	}
 
+	public function search_videos_by_name($search_name)
+	{
+		$this->db->where('video_name', $search_name);
+		$query = $this->db->get('videos');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
 }

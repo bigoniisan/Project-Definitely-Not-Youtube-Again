@@ -6,7 +6,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<a href="homepage">
 		Homepage
 	</a>
-	<input type="search" id="search" name="search" placeholder="Search">
+
+	<?php echo form_open('main/item_search')?>
+	<form>
+		<input type="search" id="search" name="search" placeholder="Search">
+		<input type="submit" id="submit" name="submit" value="Search"/>
+	</form>
+
 	<a href="upload">
 		Upload
 	</a>

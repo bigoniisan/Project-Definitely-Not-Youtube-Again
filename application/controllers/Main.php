@@ -180,6 +180,27 @@ class main extends CI_Controller
 			$this->session->set_userdata($data);
 
 			$this->send_verification_email();
+
+			// setup security questions
+//			$this->setup_security_questions();
+		}
+	}
+
+	public function setup_security_questions()
+	{
+
+	}
+
+	public function item_search()
+	{
+		$search_name = $this->input->post('search');
+		$search_result = $this->_main->search_videos_by_name($search_name);
+
+		if (!$search_result) {
+			// no results
+			echo "No results";
+		} else {
+
 		}
 	}
 
