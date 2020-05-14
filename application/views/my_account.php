@@ -4,6 +4,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <h1>My Account</h1>
 
+<?php echo $this->session->flashdata("email_verification"); ?>
+
 <?php echo form_open_multipart('main/image_upload');?>
 <form class="dropzone" id="fileupload">
 	<label>Profile Image Upload</label><br/>
@@ -20,6 +22,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <?php echo $this->session->flashdata("image_upload_error"); ?>
 
 <?php echo '<h2>User ID: '.$_SESSION['user_id'].'</h2>';?>
+
+<?php echo '<h2>Email Verified: '.$_SESSION['is_verified'].'</h2>';?>
+
+<?php if ($_SESSION['is_verified'] == 'no') {
+	echo '<a href="send_verification_email">Send Verification Email</a>';
+}?>
 
 <?php echo '<h2>Email: '.$_SESSION['email'].'</h2>';?>
 <?php echo form_open('main/change_email'); ?>
@@ -49,10 +57,3 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <?php echo $this->session->flashdata("change_birthday_error"); ?>
 
 <a href="password_reset">Change Password</a>
-
-<?php //echo form_open('main/send_email'); ?>
-<!--<form>-->
-<!--	<input type="email" id="send-email" name="send-email"/>-->
-<!--	<input type="submit" name="submit" value="Send email for some reason"/>-->
-<!--</form>-->
-<?php //echo $this->session->flashdata("email_sent"); ?>

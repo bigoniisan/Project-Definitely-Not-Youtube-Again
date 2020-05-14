@@ -74,6 +74,12 @@ class main extends CI_Controller
 		$this->load->view('profile_image_upload', $data);
 	}
 
+	public function verification_code_input()
+	{
+		$this->load_navbar();
+		$this->load->view('verification_code_input');
+	}
+
 	public function load_navbar()
 	{
 		if ($this->session->userdata('email') != '') {
@@ -90,6 +96,9 @@ class main extends CI_Controller
 		$this->session->unset_userdata('password');
 		$this->session->unset_userdata('name');
 		$this->session->unset_userdata('birthday');
+		$this->session->unset_userdata('is_verified');
+		$this->session->unset_userdata('verification_code');
+
 		$this->homepage();
 	}
 
@@ -109,7 +118,8 @@ class main extends CI_Controller
 				'email' => $user[0]['email'],
 				'password' => $user[0]['password'],
 				'name' => $user[0]['name'],
-				'birthday' => $user[0]['birthday']
+				'birthday' => $user[0]['birthday'],
+				'is_verified' => $user[0]['is_verified']
 			);
 			$this->session->set_userdata($session_data);
 
@@ -136,7 +146,8 @@ class main extends CI_Controller
 					'email' => $user[0]['email'],
 					'password' => $user[0]['password'],
 					'name' => $user[0]['name'],
-					'birthday' => $user[0]['birthday']
+					'birthday' => $user[0]['birthday'],
+					'is_verified' => $user[0]['is_verified']
 				);
 				$this->session->set_userdata($session_data);
 
@@ -165,13 +176,78 @@ class main extends CI_Controller
 			$this->signup();
 		} else {
 			// signup success
-
-			// send verification email
-			$this->send_email($data['email']);
-
 			$this->_main->insert_user($data);
 			$this->session->set_userdata($data);
-			$this->homepage();
+
+			$this->send_verification_email();
+		}
+	}
+
+	public function send_verification_email()
+	{
+		// set verification code
+		$verification_code = rand(1000, 9999);
+		$session_data = array(
+			'is_verified' => 'no',
+			'verification_code' => (string) $verification_code
+		);
+		$this->session->set_userdata($session_data);
+
+		// send verification email
+		$to_email = $this->session->userdata('email');
+		$email_subject = 'Signup Verification Code';
+		$email_message = "Please verify your email." . "<br/><br/>" . "Verification Code: " .
+			$verification_code . "<br/><br/>" . "Thanks," . "<br/>" . "SupaSexy69";
+		$this->send_email($to_email, $email_subject, $email_message);
+
+		// redirect to verification code input page
+		$this->verification_code_input();
+	}
+
+	public function send_email($email, $subject, $message)
+	{
+		$config = array(
+			'protocol' => 'smtp',
+			'smtp_host' => 'mailhub.eait.uq.edu.au',
+			'smtp_port' => 25,
+			'mailtype' => 'html',
+			'charset' => 'iso-8859-1',
+			'wordwrap' => TRUE
+		);
+		$this->load->library('email', $config);
+
+		$this->email->from('noreply@infs3202-78c24710.uqcloud.net', 'SupaSexy69');
+		$this->email->to($email);
+		$this->email->subject($subject);
+		$this->email->message($message);
+
+		$this->email->send();
+	}
+
+	public function verify_email()
+	{
+		$input_code = $this->input->post('verification-code');
+
+		if ($input_code == $this->session->userdata('verification_code')) {
+			// successful verification
+
+			// update user in db
+			$data = array(
+				'user_id' => $this->session->userdata('user_id'),
+				'is_verified' => TRUE
+			);;
+			$this->_main->update_user($data['user_id'], $data);
+
+			$session_data = array(
+				'is_verified' => 'yes'
+			);
+			$this->session->set_userdata($session_data);
+
+			$this->my_account();
+		} else {
+			// unsuccessful verification, redirect to verification code page
+			$this->session->set_flashdata('email_verification', 'Incorrect verification code');
+			$this->verification_code_input();
 		}
 	}
 
@@ -247,36 +323,16 @@ class main extends CI_Controller
 		}
 	}
 
-	public function send_email($email)
-	{
-		$config = array(
-			'protocol' => 'smtp',
-			'smtp_host' => 'mailhub.eait.uq.edu.au',
-			'smtp_port' => 25,
-			'mailtype' => 'html',
-			'charset' => 'iso-8859-1',
-			'wordwrap' => TRUE
-		);
-		$this->load->library('email', $config);
-
-		$this->email->from('noreply@infs3202-78c24710.uqcloud.net');
-		$this->email->to($email);
-		$this->email->subject('Email Test');
-		$this->email->message('Testing the email class.');
-
-		$this->email->send();
-	}
-
 	public function change_email()
 	{
 		$data = array(
+			'user_id' => $this->session->userdata('user_id'),
 			'email' => $this->input->post('change-email')
 		);
 
 		if (!$this->_main->user_exists($data['email'])) {
-			$user_id = $this->session->userdata('user_id');
 			$this->session->set_userdata($data);
-			$this->_main->update_user($user_id, $data);
+			$this->_main->update_user($data['user_id'], $data);
 			$this->session->set_flashdata("change_email_error","Email changed successfully");
 		} else {
 			$this->session->set_flashdata("change_email","Error: Email already exists");
@@ -287,11 +343,12 @@ class main extends CI_Controller
 	public function change_name()
 	{
 		$data = array(
+			'user_id' => $this->session->userdata('user_id'),
 			'name' => $this->input->post('change-name')
 		);
 
 		$user_id = $this->session->userdata('user_id');
-		$this->_main->update_user($user_id, $data);
+		$this->_main->update_user($data['user_id'], $data);
 		$this->session->set_userdata($data);
 		$this->session->set_flashdata("change_name_error","Name changed successfully");
 		redirect(base_url() . 'main/my_account');
@@ -300,12 +357,13 @@ class main extends CI_Controller
 	public function change_birthday()
 	{
 		$data = array(
+			'user_id' => $this->session->userdata('user_id'),
 			'birthday' => $this->input->post('change-birthday')
 		);
 
 		if ($data['birthday'] < date('Y-m-d')) {
 			$user_id = $this->session->userdata('user_id');
-			$this->_main->update_user($user_id, $data);
+			$this->_main->update_user($data['user_id'], $data);
 			$this->session->set_userdata($data);
 			$this->session->set_flashdata("change_birthday_error","Birthday changed successfully");
 		} else {
