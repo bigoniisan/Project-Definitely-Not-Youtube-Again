@@ -31,7 +31,6 @@ class main extends CI_Controller
 	{
 		$this->load_navbar();
 		$video_list = $this->_main->get_videos();
-		print_r($video_list);
 		$this->load->view('homepage', array(
 			'video_list' => $video_list
 		));
@@ -78,6 +77,23 @@ class main extends CI_Controller
 	{
 		$this->load_navbar();
 		$this->load->view('verification_code_input');
+	}
+
+	public function video_player($video_id)
+	{
+		$result_array = $this->_main->get_video_by_id($video_id);
+		$video_data = $result_array[0];
+		if (!$video_data) {
+			// no video with that ID exists
+			$this->load_navbar();
+			$this->load->view('video_player');
+		} else {
+			$data = array(
+				'video_data' => $video_data
+			);
+			$this->load_navbar();
+			$this->load->view('video_player', $data);
+		}
 	}
 
 	public function load_navbar()
@@ -195,7 +211,6 @@ class main extends CI_Controller
 	{
 		$search_name = $this->input->post('search');
 		$search_result = $this->_main->search_videos_by_name_contains($search_name);
-		print_r($search_result);
 
 		if (!$search_result) {
 			// no results
@@ -318,7 +333,6 @@ class main extends CI_Controller
 			$upload_data = $this->upload->data();
 			$data = array(
 				'video_id' => $this->_main->generate_video_id(),
-//				'video_name' => $upload_data['raw_name'],
 				'video_name' => $filename,
 				'filepath' => base_url() . 'uploads/' . $upload_data['file_name']
 			);

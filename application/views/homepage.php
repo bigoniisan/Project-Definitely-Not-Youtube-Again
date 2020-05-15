@@ -15,11 +15,15 @@ if (isset($_SESSION['name'])) {
 <?php if (isset($video_list))
 foreach($video_list as $video): ?>
 	<td>
+		<a href="video_player/<?php echo $video['video_id'];?>"><?php echo $video['video_name'];?></a>
+		<br>
 		<video id="video" class="video-js vjs-default-skin" width="320" height="180" controls>
 			<source src="<?php echo $video['filepath'];?>">
 		</video>
-		<p><?php echo $video['video_name']?></p>
+		<br>
 	</td>
+<br>
+<br>
 <!--	<br/>-->
 <!--	--><?php //$k++;
 //	if($k%3==0)

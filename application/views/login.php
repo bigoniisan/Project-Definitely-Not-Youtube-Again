@@ -16,7 +16,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<label>Remember Me?</label>
 
 	<br/>
-	<a href="reset_password">Forgot Password?</a>
+	<a href="<?php echo base_url() . 'main/reset_password';?>">Forgot Password?</a>
 
 	<input type="submit" id="submit" name="submit" value="Log In"/>
 

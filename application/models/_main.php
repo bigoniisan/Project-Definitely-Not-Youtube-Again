@@ -102,6 +102,17 @@ class _main extends CI_Model
 		}
 	}
 
+	public function get_video_by_id($video_id)
+	{
+		$this->db->where('video_id', $video_id);
+		$query = $this->db->get('videos');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
+
 	public function search_videos_by_name_contains($search_name)
 	{
 		// split search terms into array

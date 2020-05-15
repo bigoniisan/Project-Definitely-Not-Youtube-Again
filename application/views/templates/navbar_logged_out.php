@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 
 <nav>
-	<a href="homepage">
+	<a href="<?php echo base_url() . 'main/homepage';?>">
 		Homepage
 	</a>
 
@@ -13,10 +13,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		<input type="submit" id="submit" name="submit" value="Search"/>
 	</form>
 
-	<a href="signup">
+	<a href="<?php echo base_url() . 'main/signup';?>">
 		Signup
 	</a>
-	<a href="login">
+	<a href="<?php echo base_url() . 'main/login';?>">
 		Login
 	</a>
 </nav>

@@ -56,4 +56,4 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </form>
 <?php echo $this->session->flashdata("change_birthday_error"); ?>
 
-<a href="password_reset">Change Password</a>
+<a href="<?php echo base_url() . 'main/password_reset';?>">Change Password</a>
