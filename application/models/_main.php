@@ -101,4 +101,19 @@ class _main extends CI_Model
 			return false;
 		}
 	}
+
+	public function search_videos_by_name_contains($search_name)
+	{
+		// split search terms into array
+		$search_terms = explode(' ', $search_name);
+		foreach($search_terms as $search_term) {
+			$this->db->or_like('video_name', $search_term);
+		}
+		$query = $this->db->get('videos');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
 }

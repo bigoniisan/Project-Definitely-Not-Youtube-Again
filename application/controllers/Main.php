@@ -194,13 +194,19 @@ class main extends CI_Controller
 	public function item_search()
 	{
 		$search_name = $this->input->post('search');
-		$search_result = $this->_main->search_videos_by_name($search_name);
+		$search_result = $this->_main->search_videos_by_name_contains($search_name);
+		print_r($search_result);
 
 		if (!$search_result) {
 			// no results
-			echo "No results";
+			$this->load_navbar();
+			$this->load->view('item_search');
 		} else {
-
+			$data = array(
+				'search_result' => $search_result
+			);
+			$this->load_navbar();
+			$this->load->view('item_search', $data);
 		}
 	}
 
@@ -302,6 +308,8 @@ class main extends CI_Controller
 		$config['allowed_types'] = 'mp4';
 		$this->load->library('upload', $config);
 
+		$filename = $this->input->post('filename');
+
 		if (!$this->upload->do_upload()) {
 			$this->session->set_flashdata('error', $this->upload->display_errors());
 			$this->load_navbar();
@@ -310,12 +318,12 @@ class main extends CI_Controller
 			$upload_data = $this->upload->data();
 			$data = array(
 				'video_id' => $this->_main->generate_video_id(),
-				'video_name' => $upload_data['raw_name'],
+//				'video_name' => $upload_data['raw_name'],
+				'video_name' => $filename,
 				'filepath' => base_url() . 'uploads/' . $upload_data['file_name']
 			);
 			$this->_main->insert_video($data);
 
-			print_r($upload_data);
 			$this->load_navbar();
 			$this->load->view('upload', $data);
 		}
