@@ -132,4 +132,28 @@ class _main extends CI_Model
 	{
 		$this->db->insert('security_questions', $data);
 	}
+
+	public function get_user_security_questions($user_id)
+	{
+		$this->db->where('user_id', $user_id);
+		$this->db->select('q1');
+		$this->db->select('q2');
+		$this->db->select('q3');
+		$query = $this->db->get('security_questions');
+		return $query->result_array();
+	}
+
+	public function verify_security_questions($user_id, $data)
+	{
+		$this->db->where('user_id', $user_id);
+		$this->db->where('a1', $data['a1']);
+		$this->db->where('a2', $data['a2']);
+		$this->db->where('a3', $data['a3']);
+		$query = $this->db->get('security_questions');
+		if ($query->num_rows() > 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }

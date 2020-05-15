@@ -60,10 +60,28 @@ class main extends CI_Controller
 		$this->load->view('upload');
 	}
 
-	public function password_reset()
+	public function verify_security_questions()
 	{
-		$this->load_navbar();
-		$this->load->view('password_reset');
+		if ($this->session->userdata('security_questions_set') == 'no') {
+			// security questions not set
+			$this->session->flashdata('error', "Security questions must be set before changing password");
+			$this->my_account();
+		} elseif ($this->session->userdata('security_questions_set') == 'yes') {
+			// security questions set
+
+			// retrieve security questions then pass as data to security question verification page
+			$user_id = $this->session->userdata('user_id');
+			$security_questions_array = $this->_main->get_user_security_questions($user_id);
+			$data = array(
+				'security_questions' => $security_questions_array[0]
+			);
+			$this->load_navbar();
+			$this->load->view('verify_security_questions', $data);
+		} else {
+			// wtf
+			$this->session->flashdata('error', 'wtf, something is very wrong');
+			$this->my_account();
+		}
 	}
 
 	public function profile_image_upload()
@@ -342,9 +360,41 @@ class main extends CI_Controller
 		}
 	}
 
-	public function reset_password()
+	public function security_questions_verification()
 	{
-		$email = $this->input->post('email');
+		$user_id = $this->session->userdata('user_id');
+		$data = array(
+			'a1' => $this->input->post('a1'),
+			'a2' => $this->input->post('a2'),
+			'a3' => $this->input->post('a3'),
+		);
+
+		if ($this->_main->verify_security_questions($user_id, $data)) {
+			$this->load_navbar();
+			$this->load->view('change_password_page');
+		} else {
+			// security answers incorrect
+			$security_questions_array = $this->_main->get_user_security_questions($user_id);
+			$data = array(
+				'security_questions' => $security_questions_array[0]
+			);
+
+			$this->session->flashdata('error', "Answers to one or more security questions were incorrect");
+			$this->load_navbar();
+			$this->load->view('verify_security_questions', $data);
+		}
+	}
+
+	public function password_reset()
+	{
+		$user_id = $this->session->userdata('user_id');
+		$data = array(
+			'password' => $this->input->post('new-password')
+		);
+		$this->_main->update_user($user_id, $data);
+
+		$this->my_account();
+		echo "NOTIFICATION: Password successfully reset";
 	}
 
 	public function ajax_upload()
