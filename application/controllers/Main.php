@@ -96,6 +96,12 @@ class main extends CI_Controller
 		}
 	}
 
+	public function security_questions_page()
+	{
+		$this->load_navbar();
+		$this->load->view('setup_security_questions');
+	}
+
 	public function load_navbar()
 	{
 		if ($this->session->userdata('email') != '') {
@@ -114,6 +120,7 @@ class main extends CI_Controller
 		$this->session->unset_userdata('birthday');
 		$this->session->unset_userdata('is_verified');
 		$this->session->unset_userdata('verification_code');
+		$this->session->unset_userdata('security_questions_set');
 
 		$this->homepage();
 	}
@@ -135,7 +142,8 @@ class main extends CI_Controller
 				'password' => $user[0]['password'],
 				'name' => $user[0]['name'],
 				'birthday' => $user[0]['birthday'],
-				'is_verified' => $user[0]['is_verified']
+				'is_verified' => $user[0]['is_verified'],
+				'security_questions_set' => $user[0]['security_questions_set']
 			);
 			$this->session->set_userdata($session_data);
 
@@ -163,7 +171,8 @@ class main extends CI_Controller
 					'password' => $user[0]['password'],
 					'name' => $user[0]['name'],
 					'birthday' => $user[0]['birthday'],
-					'is_verified' => $user[0]['is_verified']
+					'is_verified' => $user[0]['is_verified'],
+					'security_questions_set' => $user[0]['security_questions_set']
 				);
 				$this->session->set_userdata($session_data);
 
@@ -180,7 +189,8 @@ class main extends CI_Controller
 			'password' => $this->input->post('password'),
 			'name' => $this->input->post('name'),
 			'birthday' => $this->input->post('birthday'),
-			'is_verified' => FALSE
+			'is_verified' => FALSE,
+			'security_questions_set' => FALSE
 		);
 
 		if ($this->_main->user_exists($data['email'])) {
@@ -192,19 +202,58 @@ class main extends CI_Controller
 			$this->signup();
 		} else {
 			// signup success
-			$this->_main->insert_user($data);
-			$this->session->set_userdata($data);
 
-			$this->send_verification_email();
+			// insert user in db
+			$this->_main->insert_user($data);
+
+			// update session data
+			$session_data = array(
+				'user_id' => $data['user_id'],
+				'email' => $data['email'],
+				'password' => $data['password'],
+				'name' => $data['name'],
+				'birthday' => $data['birthday'],
+				'is_verified' => 'no',
+				'security_questions_set' => 'no'
+			);
+			$this->session->set_userdata($session_data);
+
+//			$this->send_verification_email();
 
 			// setup security questions
-//			$this->setup_security_questions();
+			$this->load_navbar();
+			$this->load->view('setup_security_questions');
 		}
 	}
 
 	public function setup_security_questions()
 	{
+		$data = array(
+			'user_id' => $this->session->userdata('user_id'),
+			'q1' => $this->input->post('q1'),
+			'q2' => $this->input->post('q2'),
+			'q3' => $this->input->post('q3'),
+			'a1' => $this->input->post('a1'),
+			'a2' => $this->input->post('a2'),
+			'a3' => $this->input->post('a3')
+		);
+		$this->_main->insert_security_questions($data);
 
+		// update user in db
+		$user_data = array(
+			'user_id' => $this->session->userdata('user_id'),
+			'security_questions_set' => TRUE
+		);;
+		$this->_main->update_user($data['user_id'], $user_data);
+
+		// update session data
+		$session_data = array(
+			'security_questions_set' => 'yes'
+		);
+		$this->session->set_userdata($session_data);
+
+		// redirect to my_account
+		$this->my_account();
 	}
 
 	public function item_search()
@@ -230,7 +279,7 @@ class main extends CI_Controller
 		// set verification code
 		$verification_code = rand(1000, 9999);
 		$session_data = array(
-			'is_verified' => 'no',
+//			'is_verified' => 'no',
 			'verification_code' => (string) $verification_code
 		);
 		$this->session->set_userdata($session_data);

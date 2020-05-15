@@ -23,10 +23,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <?php echo '<h2>User ID: '.$_SESSION['user_id'].'</h2>';?>
 
-<?php echo '<h2>Email Verified: '.$_SESSION['is_verified'].'</h2>';?>
-
+<?php echo '<h3>Email Verified: '.$_SESSION['is_verified'].'</h3>';?>
 <?php if ($_SESSION['is_verified'] == 'no') {
 	echo '<a href="send_verification_email">Send Verification Email</a>';
+}?>
+
+<?php echo '<h3>Security Questions Set: '.$_SESSION['security_questions_set'].'</h3>';?>
+<?php if ($_SESSION['security_questions_set'] == 'no') {
+	echo '<a href="security_questions_page">Setup Security Questions</a>';
 }?>
 
 <?php echo '<h2>Email: '.$_SESSION['email'].'</h2>';?>

@@ -127,4 +127,9 @@ class _main extends CI_Model
 			return false;
 		}
 	}
+
+	public function insert_security_questions($data)
+	{
+		$this->db->insert('security_questions', $data);
+	}
 }
