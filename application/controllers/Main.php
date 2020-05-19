@@ -4,19 +4,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class main extends CI_Controller
 {
 
-//	private $_main;
-
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->database();
 		$this->load->model('_main');
 		$this->load->helper(array(
+			'captcha',
 			'cookie',
 			'form',
 			'url'
 		));
 		$this->load->library(array(
+			'encryption',
 			'form_validation',
 			'session'
 		));
@@ -153,6 +153,20 @@ class main extends CI_Controller
 
 		$user = $this->_main->verify_user($data['email'], $data['password']);
 
+		$is_verified = '';
+		if ($user[0]['is_verified']) {
+			$is_verified = 'yes';
+		} else {
+			$is_verified = 'no';
+		}
+
+		$security_questions_set = '';
+		if ($user[0]['security_questions_set']) {
+			$security_questions_set = 'yes';
+		} else {
+			$security_questions_set = 'no';
+		}
+
 		if (get_cookie('email') != '' && get_cookie('password') != '') {
 			$session_data = array(
 				'user_id' => $user[0]['user_id'],
@@ -160,8 +174,8 @@ class main extends CI_Controller
 				'password' => $user[0]['password'],
 				'name' => $user[0]['name'],
 				'birthday' => $user[0]['birthday'],
-				'is_verified' => $user[0]['is_verified'],
-				'security_questions_set' => $user[0]['security_questions_set']
+				'is_verified' => $is_verified,
+				'security_questions_set' => $security_questions_set
 			);
 			$this->session->set_userdata($session_data);
 
@@ -189,8 +203,8 @@ class main extends CI_Controller
 					'password' => $user[0]['password'],
 					'name' => $user[0]['name'],
 					'birthday' => $user[0]['birthday'],
-					'is_verified' => $user[0]['is_verified'],
-					'security_questions_set' => $user[0]['security_questions_set']
+					'is_verified' => $is_verified,
+					'security_questions_set' => $security_questions_set
 				);
 				$this->session->set_userdata($session_data);
 
@@ -468,13 +482,13 @@ class main extends CI_Controller
 	public function change_email()
 	{
 		$data = array(
-			'user_id' => $this->session->userdata('user_id'),
 			'email' => $this->input->post('change-email')
 		);
 
+		$user_id = $this->session->userdata('user_id');
 		if (!$this->_main->user_exists($data['email'])) {
 			$this->session->set_userdata($data);
-			$this->_main->update_user($data['user_id'], $data);
+			$this->_main->update_user($user_id, $data);
 			$this->session->set_flashdata("change_email_error","Email changed successfully");
 		} else {
 			$this->session->set_flashdata("change_email","Error: Email already exists");
@@ -485,27 +499,38 @@ class main extends CI_Controller
 	public function change_name()
 	{
 		$data = array(
-			'user_id' => $this->session->userdata('user_id'),
 			'name' => $this->input->post('change-name')
 		);
 
 		$user_id = $this->session->userdata('user_id');
-		$this->_main->update_user($data['user_id'], $data);
+		$this->_main->update_user($user_id, $data);
 		$this->session->set_userdata($data);
 		$this->session->set_flashdata("change_name_error","Name changed successfully");
 		redirect(base_url() . 'main/my_account');
 	}
 
+	public function change_name_ajax()
+	{
+		$data = array(
+			'name' => $this->input->post('change-name-ajax')
+		);
+
+		$user_id = $this->session->userdata('user_id');
+		$this->_main->update_user($user_id, $data);
+		$this->session->set_userdata($data);
+		echo $data['name'];
+	}
+
 	public function change_birthday()
 	{
 		$data = array(
-			'user_id' => $this->session->userdata('user_id'),
 			'birthday' => $this->input->post('change-birthday')
 		);
 
+		$user_id = $this->session->userdata('user_id');
 		if ($data['birthday'] < date('Y-m-d')) {
 			$user_id = $this->session->userdata('user_id');
-			$this->_main->update_user($data['user_id'], $data);
+			$this->_main->update_user($user_id, $data);
 			$this->session->set_userdata($data);
 			$this->session->set_flashdata("change_birthday_error","Birthday changed successfully");
 		} else {

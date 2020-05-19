@@ -2,6 +2,10 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+</head>
+
 <h1>My Account</h1>
 
 <?php echo $this->session->flashdata("email_verification"); ?>
@@ -42,14 +46,47 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </form>
 <?php echo $this->session->flashdata("change_email_error"); ?>
 
-<?php echo '<h2>Name: '.$_SESSION['name'].'</h2>';?>
-<?php echo form_open('main/change_name'); ?>
-<form>
-	<label>Change Name</label>
-	<input type="text" id="change-name" name="change-name"/>
-	<input type="submit" name="submit" value="Change Name"/>
+<?php //echo '<h2>Name: '.$_SESSION['name'].'</h2>';?>
+<?php //echo form_open('main/change_name'); ?>
+<!--<form>-->
+<!--	<label>Change Name</label>-->
+<!--	<input type="text" id="change-name" name="change-name"/>-->
+<!--	<input type="submit" name="submit" value="Change Name"/>-->
+<!--</form>-->
+<?php //echo $this->session->flashdata("change_name_error"); ?>
+
+<div id="ajax-name">
+	<?php echo '<h2>Name: '.$_SESSION['name'].'</h2>';?>
+</div>
+<form method="post" id="change-name-ajax-form" enctype="text/plain">
+	<label>Change Name With Ajax</label>
+	<input type="text" name="change-name-ajax" id="change-name-ajax" />
+	<input type="submit" name="change-name-ajax-submit" id="change-name-ajax-submit" value="Change Name" class="btn btn-info" />
 </form>
-<?php echo $this->session->flashdata("change_name_error"); ?>
+<script>
+	$(document).ready(function(){
+		$('#change-name-ajax-form').on('submit', function(e){
+			e.preventDefault();
+			if($('#change-name-ajax').val() == '') {
+				alert("Error: name cannot be empty");
+			}
+			else {
+				$.ajax({
+					url:"<?php echo base_url(); ?>main/change_name_ajax",
+					method:"POST",
+					data:new FormData(this),
+					contentType: false,
+					cache: false,
+					processData:false,
+					success:function(data)
+					{
+						$('#ajax-name').html('<h2>Name: ' + data + '</h2>');
+					}
+				});
+			}
+		});
+	});
+</script>
 
 <?php echo '<h2>Birthday: '.$_SESSION['birthday'].'</h2>';?>
 <?php echo form_open('main/change_birthday'); ?>
