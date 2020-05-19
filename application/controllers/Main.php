@@ -447,13 +447,39 @@ class main extends CI_Controller
 			$data = array(
 				'video_id' => $this->_main->generate_video_id(),
 				'video_name' => $filename,
-				'filepath' => base_url() . 'uploads/' . $upload_data['file_name']
+				'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+				'video_likes' => 0,
+				'video_dislikes' => 0
 			);
 			$this->_main->insert_video($data);
 
 			$this->load_navbar();
 			$this->load->view('upload', $data);
 		}
+	}
+
+	public function like_video($video_id)
+	{
+		$query = $this->_main->get_video_likes($video_id);
+		$video_likes = $query[0]['video_likes'];
+		$data = array(
+			'video_likes' => $video_likes + 1
+		);
+		$this->_main->update_video($video_id, $data);
+
+		$this->video_player($video_id);
+	}
+
+	public function dislike_video($video_id)
+	{
+		$query = $this->_main->get_video_dislikes($video_id);
+		$video_dislikes = $query[0]['video_dislikes'];
+		$data = array(
+			'video_dislikes' => $video_dislikes + 1
+		);
+		$this->_main->update_video($video_id, $data);
+
+		$this->video_player($video_id);
 	}
 
 	public function image_upload()

@@ -10,6 +10,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </video>
 <h2><?php echo $video_data['video_name'];?></h2>
 
+<?php echo 'Likes/dislikes: ' . $video_data['video_likes'] . '/' . $video_data['video_dislikes'];?>
+
+<?php echo form_open('main/like_video/' . $video_data['video_id']);?>
+<form>
+	<input type="submit" name="like-video" value="Like"/>
+</form>
+
+<?php echo form_open('main/dislike_video/' . $video_data['video_id']);?>
+<form>
+	<input type="submit" name="dislike-video" value="Dislike"/>
+</form>
+
 <?php if (!isset($video_data)) {
 	echo "Error: No video with that ID found.";
 }?>

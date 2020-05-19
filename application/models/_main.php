@@ -128,6 +128,28 @@ class _main extends CI_Model
 		}
 	}
 
+	public function get_video_likes($video_id)
+	{
+		$this->db->where('video_id', $video_id);
+		$this->db->select('video_likes');
+		$query = $this->db->get('videos');
+		return $query->result_array();
+	}
+
+	public function get_video_dislikes($video_id)
+	{
+		$this->db->where('video_id', $video_id);
+		$this->db->select('video_dislikes');
+		$query = $this->db->get('videos');
+		return $query->result_array();
+	}
+
+	public function update_video($video_id, $data)
+	{
+		$this->db->where('video_id', $video_id);
+		$this->db->update('videos', $data);
+	}
+
 	public function insert_security_questions($data)
 	{
 		$this->db->insert('security_questions', $data);
