@@ -178,4 +178,37 @@ class _main extends CI_Model
 			return false;
 		}
 	}
+
+	public function comments_count()
+	{
+		$query = $this->db->get('comments');
+		return $query->num_rows();
+	}
+
+	public function generate_comment_id()
+	{
+		return $this->comments_count() + 1;
+	}
+
+	public function insert_comment($data)
+	{
+		$this->db->insert('comments', $data);
+	}
+
+	public function update_comment($comment_id, $data)
+	{
+		$this->db->where('comment_id', $comment_id);
+		$this->db->update('comments', $data);
+	}
+
+	public function get_all_video_comments($video_id)
+	{
+		$this->db->where('video_id', $video_id);
+		$query = $this->db->get('comments');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
 }

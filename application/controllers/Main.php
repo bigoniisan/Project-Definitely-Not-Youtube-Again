@@ -106,8 +106,11 @@ class main extends CI_Controller
 			$this->load_navbar();
 			$this->load->view('video_player');
 		} else {
+			$comments = $this->_main->get_all_video_comments($video_id);
+
 			$data = array(
-				'video_data' => $video_data
+				'video_data' => $video_data,
+				'comments' => $comments
 			);
 			$this->load_navbar();
 			$this->load->view('video_player', $data);
@@ -478,6 +481,21 @@ class main extends CI_Controller
 			'video_dislikes' => $video_dislikes + 1
 		);
 		$this->_main->update_video($video_id, $data);
+
+		$this->video_player($video_id);
+	}
+
+	public function submit_comment($video_id)
+	{
+		$data = array(
+			'comment_id' => $this->_main->generate_comment_id(),
+			'video_id' => $video_id,
+			'user_id' => $this->session->userdata('user_id'),
+			'name' => $this->session->userdata('name'),
+			'comment' => $this->input->post('comment'),
+			'date' => date('Y-m-d H:i:s')
+		);
+		$this->_main->insert_comment($data);
 
 		$this->video_player($video_id);
 	}
