@@ -99,4 +99,5 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <a href="<?php echo base_url() . 'main/verify_security_questions';?>">Change Password</a>
 
-<?php echo $this->session->flashdata('error');
+<?php //echo $this->session->flashdata('error');
+

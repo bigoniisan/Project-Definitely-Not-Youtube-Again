@@ -10,7 +10,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<input type="email" id="email" name="email" required/>
 	<br/>
 	<label>Password</label>
-	<input type="password" id="password" name="password" minlength="3" required/>
+	<input type="password" id="password" name="password" minlength="6" required/>
 	<br/>
 	<label>Name</label>
 	<input type="text" id="name" name="name" required/>
@@ -21,4 +21,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<input type="submit" id="submit" name="submit" value="Sign Up"/>
 </form>
-<?php echo $this->session->flashdata("error"); ?>
+<?php echo $this->session->flashdata("password_type_error"); ?>
+<?php echo $this->session->flashdata("password_length_error"); ?>
+<?php echo $this->session->flashdata("birthday_error"); ?>
+
+

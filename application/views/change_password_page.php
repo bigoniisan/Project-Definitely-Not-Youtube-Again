@@ -14,4 +14,4 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 	<input type="submit" id="submit" name="submit" value="Change Password"/>
 </form>
-<?php echo $this->session->flashdata('error');?>
+<?php echo $this->session->flashdata('password_same_error');?>

@@ -60,6 +60,12 @@ class main extends CI_Controller
 		$this->load->view('upload');
 	}
 
+	public function forgot_password()
+	{
+		$this->load_navbar();
+		$this->load->view('forgot_password');
+	}
+
 	public function verify_security_questions()
 	{
 		if ($this->session->userdata('security_questions_set') == 'no') {
@@ -97,6 +103,12 @@ class main extends CI_Controller
 		$this->load->view('verification_code_input');
 	}
 
+	public function verification_code_input_forget_password()
+	{
+		$this->load_navbar();
+		$this->load->view('verification_code_input_forget_password');
+	}
+
 	public function video_player($video_id)
 	{
 		$result_array = $this->_main->get_video_by_id($video_id);
@@ -105,12 +117,11 @@ class main extends CI_Controller
 			// no video with that ID exists
 			$this->load_navbar();
 			$this->load->view('video_player');
+			echo "No video with that ID exists";
 		} else {
-			$comments = $this->_main->get_all_video_comments($video_id);
-
 			$data = array(
 				'video_data' => $video_data,
-				'comments' => $comments
+				'comments' => $this->_main->get_all_video_comments($video_id)
 			);
 			$this->load_navbar();
 			$this->load->view('video_player', $data);
@@ -154,50 +165,41 @@ class main extends CI_Controller
 			'remember-me' => $this->input->post('remember-me')
 		);
 
-		$user = $this->_main->verify_user($data['email'], $data['password']);
+		$user = $this->_main->get_user($data['email']);
 
-		$is_verified = '';
-		if ($user[0]['is_verified']) {
-			$is_verified = 'yes';
+		if ($user == FALSE) {
+			// user with email does not exist
+			$this->session->set_flashdata('error', 'Invalid email');
+			$this->load_navbar();
+			$this->load->view('login');
 		} else {
-			$is_verified = 'no';
-		}
-
-		$security_questions_set = '';
-		if ($user[0]['security_questions_set']) {
-			$security_questions_set = 'yes';
-		} else {
-			$security_questions_set = 'no';
-		}
-
-		if (get_cookie('email') != '' && get_cookie('password') != '') {
-			$session_data = array(
-				'user_id' => $user[0]['user_id'],
-				'email' => $user[0]['email'],
-				'password' => $user[0]['password'],
-				'name' => $user[0]['name'],
-				'birthday' => $user[0]['birthday'],
-				'is_verified' => $is_verified,
-				'security_questions_set' => $security_questions_set
-			);
-			$this->session->set_userdata($session_data);
-
-			$this->homepage();
-
-		} else {
-
-			if ($user == FALSE) {
-				$this->session->set_flashdata('error', 'Invalid username or password');
+			// user with email exists
+			if (!password_verify($data['password'], $user[0]['password'])) {
+				// password does not match hash in db
+				$this->session->set_flashdata('error', 'Password incorrect');
 				$this->load_navbar();
 				$this->load->view('login');
 			} else {
-
 				if ($data['remember-me']) {
-					set_cookie('email', $data['email']);
-					set_cookie('password', $data['password']);
+					set_cookie('email', $data['email'], time() + (60));
+					set_cookie('password', $data['password'], time() + (60));
 				} else {
 					delete_cookie('email');
 					delete_cookie('password');
+				}
+
+				$is_verified = '';
+				if ($user[0]['is_verified']) {
+					$is_verified = 'yes';
+				} else {
+					$is_verified = 'no';
+				}
+
+				$security_questions_set = '';
+				if ($user[0]['security_questions_set']) {
+					$security_questions_set = 'yes';
+				} else {
+					$security_questions_set = 'no';
 				}
 
 				$session_data = array(
@@ -221,19 +223,30 @@ class main extends CI_Controller
 		$data = array(
 			'user_id' => $this->_main->generate_user_id(),
 			'email' => $this->input->post('email'),
-			'password' => $this->input->post('password'),
+			'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
 			'name' => $this->input->post('name'),
 			'birthday' => $this->input->post('birthday'),
 			'is_verified' => FALSE,
 			'security_questions_set' => FALSE
 		);
 
+//		echo password_hash($data['password'], PASSWORD_DEFAULT);
+
 		if ($this->_main->user_exists($data['email'])) {
+			// check email unique
 			$this->session->set_flashdata('error', 'Email already exists');
-			$this->load_navbar();
+			$this->signup();
+		} elseif (!preg_match('([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])', $data['password'])) {
+			// if password does not contain both letters and numbers
+			$this->session->set_flashdata('password_type_error', 'Password must contain both numbers and letters');
+			$this->signup();
+		} elseif (strlen($data['password']) < 6 || strlen($data['password'] > 12)) {
+			// check password length between 6-12
+			$this->session->set_flashdata('password_length_error', 'Password must be 6-12 characters');
 			$this->signup();
 		} elseif ($data['birthday'] > date('Y-m-d')) {
-			$this->session->set_flashdata('error', 'Birthday is invalid');
+			// check birthday valid
+			$this->session->set_flashdata('birthday_error', 'Birthday is invalid');
 			$this->signup();
 		} else {
 			// signup success
@@ -252,8 +265,6 @@ class main extends CI_Controller
 				'security_questions_set' => 'no'
 			);
 			$this->session->set_userdata($session_data);
-
-//			$this->send_verification_email();
 
 			// setup security questions
 			$this->load_navbar();
@@ -309,6 +320,30 @@ class main extends CI_Controller
 		}
 	}
 
+	public function send_verification_email_forget_password()
+	{
+		$email = $this->input->post('email');
+		if (!$this->_main->user_exists($email)) {
+
+		} else {
+			$verification_code = rand(1000, 9999);
+			$session_data = array(
+				'verification_code' => (string) $verification_code
+			);
+			$this->session->set_userdata($session_data);
+
+			// send verification email
+			$to_email = $email;
+			$email_subject = 'Password Reset Verification Code';
+			$email_message = "Please verify your email." . "<br/><br/>" . "Verification Code: " .
+				$verification_code . "<br/><br/>" . "Thanks," . "<br/>" . "SupaSexy69";
+			$this->send_email($to_email, $email_subject, $email_message);
+
+			// redirect to verification code input page
+			$this->verification_code_input_forget_password();
+		}
+	}
+
 	public function send_verification_email()
 	{
 		// set verification code
@@ -350,6 +385,21 @@ class main extends CI_Controller
 		$this->email->send();
 	}
 
+//	public function verify_email_forget_password()
+//	{
+//		$input_code = $this->input->post('verification-code');
+//
+//		if ($input_code == $this->session->userdata('verification_code')) {
+//			// successful verification
+//
+//
+//		} else {
+//			// unsuccessful verification, redirect to verification code page
+//			$this->session->set_flashdata('email_verification', 'Incorrect verification code');
+//			$this->verification_code_input_forget_password();
+//		}
+//	}
+
 	public function verify_email()
 	{
 		$input_code = $this->input->post('verification-code');
@@ -361,7 +411,7 @@ class main extends CI_Controller
 			$data = array(
 				'user_id' => $this->session->userdata('user_id'),
 				'is_verified' => TRUE
-			);;
+			);
 			$this->_main->update_user($data['user_id'], $data);
 
 			$session_data = array(
@@ -396,7 +446,7 @@ class main extends CI_Controller
 				'security_questions' => $security_questions_array[0]
 			);
 
-			$this->session->flashdata('error', "Answers to one or more security questions were incorrect");
+			$this->session->set_flashdata('error', "Answers to one or more security questions were incorrect");
 			$this->load_navbar();
 			$this->load->view('verify_security_questions', $data);
 		}
@@ -408,10 +458,17 @@ class main extends CI_Controller
 		$data = array(
 			'password' => $this->input->post('new-password')
 		);
-		$this->_main->update_user($user_id, $data);
 
-		$this->my_account();
-		echo "NOTIFICATION: Password successfully reset";
+		if ($this->_main->check_password_same($user_id, $data['password'])) {
+			$this->load_navbar();
+			$this->load->view('change_password_page');
+			$this->session->set_flashdata('password_same_error', 'New password must be different from previous password');
+		} else {
+			$this->_main->update_user($user_id, $data);
+
+			$this->my_account();
+			echo "NOTIFICATION: Password successfully reset";
+		}
 	}
 
 	public function ajax_upload()
@@ -435,30 +492,48 @@ class main extends CI_Controller
 
 	public function upload_video()
 	{
-		$config['upload_path'] = './uploads';
-		$config['allowed_types'] = 'mp4';
-		$this->load->library('upload', $config);
+		$data = array();
 
-		$filename = $this->input->post('filename');
+		$count = count($_FILES['userfiles']['name']);
+		for ($i = 0; $i < $count; $i++) {
 
-		if (!$this->upload->do_upload()) {
-			$this->session->set_flashdata('error', $this->upload->display_errors());
-			$this->load_navbar();
-			$this->load->view('upload');
-		} else {
-			$upload_data = $this->upload->data();
-			$data = array(
-				'video_id' => $this->_main->generate_video_id(),
-				'video_name' => $filename,
-				'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
-				'video_likes' => 0,
-				'video_dislikes' => 0
-			);
-			$this->_main->insert_video($data);
+			if (!empty($_FILES['userfiles']['name'][$i])) {
+				// Define new $_FILES array - $_FILES['file']
+				$_FILES['file']['name'] = $_FILES['userfiles']['name'][$i];
+				$_FILES['file']['type'] = $_FILES['userfiles']['type'][$i];
+				$_FILES['file']['tmp_name'] = $_FILES['userfiles']['tmp_name'][$i];
+				$_FILES['file']['error'] = $_FILES['userfiles']['error'][$i];
+				$_FILES['file']['size'] = $_FILES['userfiles']['size'][$i];
 
-			$this->load_navbar();
-			$this->load->view('upload', $data);
+				$config['upload_path'] = './uploads';
+				$config['allowed_types'] = 'mp4';
+				$config['file_name'] = $_FILES['userfiles']['name'][$i];
+
+				$this->load->library('upload', $config);
+
+				if (!$this->upload->do_upload('file')) {
+					$this->session->set_flashdata('error', $this->upload->display_errors());
+					break;
+				} else {
+					$upload_data = $this->upload->data();
+					$data[$i] = array(
+						'video_id' => $this->_main->generate_video_id(),
+						'video_name' => $upload_data['file_name'],
+						'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+						'video_likes' => 0,
+						'video_dislikes' => 0
+					);
+					$this->_main->insert_video($data[$i]);
+				}
+			} else {
+				$this->session->set_flashdata('error', 'One or more files do not have a name');
+				break;
+			}
 		}
+		$this->load_navbar();
+		$this->load->view('upload', $data);
+
+		print_r($data);
 	}
 
 	public function like_video($video_id)

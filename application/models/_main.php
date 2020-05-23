@@ -16,6 +16,17 @@ class _main extends CI_Model
 		}
 	}
 
+	public function get_user($email)
+	{
+		$this->db->where('email', $email);
+		$query = $this->db->get('users');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
+
 	public function user_exists($email)
 	{
 		$this->db->where('email', $email);
@@ -50,6 +61,20 @@ class _main extends CI_Model
 		$this->db->where('email', $data['email']);
 		$query = $this->db->get('users');
 		return $query->result_array();
+	}
+
+	public function check_password_same($user_id, $password)
+	{
+		$this->db->where('user_id', $user_id);
+		$sql = "SELECT password FROM users 
+			WHERE users.user_id = '$user_id'
+			AND users.password = '$password'";
+		$query = $this->db->query($sql);
+		if ($query->num_rows() > 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public function users_count()
@@ -208,7 +233,7 @@ class _main extends CI_Model
 		if ($query->num_rows() > 0) {
 			return $query->result_array();
 		} else {
-			return false;
+			return array();
 		}
 	}
 }
