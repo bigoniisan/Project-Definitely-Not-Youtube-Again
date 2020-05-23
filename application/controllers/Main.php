@@ -520,6 +520,7 @@ class main extends CI_Controller
 						'video_id' => $this->_main->generate_video_id(),
 						'video_name' => $upload_data['file_name'],
 						'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+						'upload_date' => date('Y-m-d H:i:s'),
 						'video_likes' => 0,
 						'video_dislikes' => 0
 					);
@@ -532,8 +533,6 @@ class main extends CI_Controller
 		}
 		$this->load_navbar();
 		$this->load->view('upload', $data);
-
-		print_r($data);
 	}
 
 	public function like_video($video_id)

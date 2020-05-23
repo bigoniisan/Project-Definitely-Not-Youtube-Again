@@ -11,11 +11,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 <?php echo form_open_multipart('main/upload_video'); ?>
 <form class="dropzone" id="fileupload">
-	<label>Upload Video (MP4 Only)</label><br>
+	<label>Upload Videos (MP4 Only)</label><br>
 	<input type="file" id="userfiles[]" name="userfiles[]" multiple required /><br><br>
 <!--	<label>Video Title (Required)</label><br>-->
 <!--	<input type="text" id="filename" name="filename" required />-->
 	<br><br>
-	<input type="submit" id="submit" name="submit" value="Upload Video"/>
+	<input type="submit" id="submit" name="submit" value="Upload Videos"/>
 </form>
 <?php echo $this->session->flashdata("error"); ?>
