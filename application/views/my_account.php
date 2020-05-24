@@ -46,6 +46,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 </form>
 <?php echo $this->session->flashdata("change_email_error"); ?>
 
+<?php echo '<h2>Username: '.$_SESSION['username'].'</h2>';?>
+<?php echo form_open('main/change_username'); ?>
+	<form>
+		<label>Change Username</label>
+		<input type="email" id="change-username" name="change-username"/>
+		<input type="submit" name="submit" value="Change Username"/>
+	</form>
+<?php echo $this->session->flashdata("change_username_error"); ?>
+
 <?php //echo '<h2>Name: '.$_SESSION['name'].'</h2>';?>
 <?php //echo form_open('main/change_name'); ?>
 <!--<form>-->

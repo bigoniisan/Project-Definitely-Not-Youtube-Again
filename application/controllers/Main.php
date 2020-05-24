@@ -85,9 +85,21 @@ class main extends CI_Controller
 			$this->load->view('verify_security_questions', $data);
 		} else {
 			// wtf
-			$this->session->flashdata('error', 'wtf, something is very wrong');
+			echo 'wtf, something is very wrong';
 			$this->my_account();
 		}
+	}
+
+	public function verify_security_questions_forgot_password()
+	{
+		$user = $this->_main->get_user($this->session->userdata('email'));
+		$user_id = $user[0]['user_id'];
+		$security_questions_array = $this->_main->get_user_security_questions($user_id);
+		$data = array(
+			'security_questions' => $security_questions_array[0]
+		);
+		$this->load_navbar();
+		$this->load->view('verify_security_questions', $data);
 	}
 
 	public function profile_image_upload()
@@ -136,7 +148,7 @@ class main extends CI_Controller
 
 	public function load_navbar()
 	{
-		if ($this->session->userdata('email') != '') {
+		if ($this->_main->get_user_by_id($this->session->userdata('user_id'))) {
 			$this->load->view('templates/navbar_logged_in');
 		} else {
 			$this->load->view('templates/navbar_logged_out');
@@ -147,6 +159,7 @@ class main extends CI_Controller
 	{
 		$this->session->unset_userdata('user_id');
 		$this->session->unset_userdata('email');
+		$this->session->unset_userdata('username');
 		$this->session->unset_userdata('password');
 		$this->session->unset_userdata('name');
 		$this->session->unset_userdata('birthday');
@@ -205,6 +218,7 @@ class main extends CI_Controller
 				$session_data = array(
 					'user_id' => $user[0]['user_id'],
 					'email' => $user[0]['email'],
+					'username' => $user[0]['username'],
 					'password' => $user[0]['password'],
 					'name' => $user[0]['name'],
 					'birthday' => $user[0]['birthday'],
@@ -223,18 +237,21 @@ class main extends CI_Controller
 		$data = array(
 			'user_id' => $this->_main->generate_user_id(),
 			'email' => $this->input->post('email'),
-			'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
+			'username' => $this->input->post('username'),
+			'password' => $this->input->post('password'),
 			'name' => $this->input->post('name'),
 			'birthday' => $this->input->post('birthday'),
 			'is_verified' => FALSE,
 			'security_questions_set' => FALSE
 		);
 
-//		echo password_hash($data['password'], PASSWORD_DEFAULT);
-
 		if ($this->_main->user_exists($data['email'])) {
 			// check email unique
-			$this->session->set_flashdata('error', 'Email already exists');
+			$this->session->set_flashdata('email_error', 'Email already exists');
+			$this->signup();
+		} elseif ($this->_main->user_exists_username($data['username'])) {
+			// check username unique
+			$this->session->set_flashdata('username_error', 'Username already exists');
 			$this->signup();
 		} elseif (!preg_match('([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])', $data['password'])) {
 			// if password does not contain both letters and numbers
@@ -250,6 +267,7 @@ class main extends CI_Controller
 			$this->signup();
 		} else {
 			// signup success
+			$data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
 			// insert user in db
 			$this->_main->insert_user($data);
@@ -258,6 +276,7 @@ class main extends CI_Controller
 			$session_data = array(
 				'user_id' => $data['user_id'],
 				'email' => $data['email'],
+				'username' => $data['username'],
 				'password' => $data['password'],
 				'name' => $data['name'],
 				'birthday' => $data['birthday'],
@@ -324,10 +343,12 @@ class main extends CI_Controller
 	{
 		$email = $this->input->post('email');
 		if (!$this->_main->user_exists($email)) {
-
+			$this->session->set_flashdata('error', 'Email does not exist');
+			$this->forgot_password();
 		} else {
 			$verification_code = rand(1000, 9999);
 			$session_data = array(
+				'email' => $email,
 				'verification_code' => (string) $verification_code
 			);
 			$this->session->set_userdata($session_data);
@@ -340,6 +361,21 @@ class main extends CI_Controller
 			$this->send_email($to_email, $email_subject, $email_message);
 
 			// redirect to verification code input page
+			$this->verification_code_input_forget_password();
+		}
+	}
+
+	public function verify_password_change_authentication_code()
+	{
+		$input_code = $this->input->post('verification-code');
+		if ($input_code == $this->session->userdata('verification_code')) {
+			// successful verification
+//			$this->load_navbar();
+//			$this->load->view('change_password_page');
+			$this->verify_security_questions_forgot_password();
+		} else {
+			// unsuccessful verification, redirect to verification code page
+			$this->session->set_flashdata('code_verification', 'Incorrect verification code');
 			$this->verification_code_input_forget_password();
 		}
 	}
@@ -385,21 +421,6 @@ class main extends CI_Controller
 		$this->email->send();
 	}
 
-//	public function verify_email_forget_password()
-//	{
-//		$input_code = $this->input->post('verification-code');
-//
-//		if ($input_code == $this->session->userdata('verification_code')) {
-//			// successful verification
-//
-//
-//		} else {
-//			// unsuccessful verification, redirect to verification code page
-//			$this->session->set_flashdata('email_verification', 'Incorrect verification code');
-//			$this->verification_code_input_forget_password();
-//		}
-//	}
-
 	public function verify_email()
 	{
 		$input_code = $this->input->post('verification-code');
@@ -429,7 +450,8 @@ class main extends CI_Controller
 
 	public function security_questions_verification()
 	{
-		$user_id = $this->session->userdata('user_id');
+		$user = $this->_main->get_user($this->session->userdata('email'));
+		$user_id = $user[0]['user_id'];
 		$data = array(
 			'a1' => $this->input->post('a1'),
 			'a2' => $this->input->post('a2'),
@@ -454,19 +476,33 @@ class main extends CI_Controller
 
 	public function password_reset()
 	{
-		$user_id = $this->session->userdata('user_id');
+		$user = $this->_main->get_user($this->session->userdata('email'));
+		$user_id = $user[0]['user_id'];
 		$data = array(
 			'password' => $this->input->post('new-password')
 		);
 
-		if ($this->_main->check_password_same($user_id, $data['password'])) {
+		if (password_verify($data['password'], $user[0]['password'])) {
+			// if input pw matches hashed pw in db
+			$this->session->set_flashdata('password_same_error', 'New password must be different from previous password');
 			$this->load_navbar();
 			$this->load->view('change_password_page');
-			$this->session->set_flashdata('password_same_error', 'New password must be different from previous password');
+		} elseif (!preg_match('([a-zA-Z].*[0-9]|[0-9].*[a-zA-Z])', $data['password'])) {
+			// if password does not contain both letters and numbers
+			$this->session->set_flashdata('password_type_error', 'Password must contain both numbers and letters');
+			$this->load_navbar();
+			$this->load->view('change_password_page');
+		} elseif (strlen($data['password']) < 6 || strlen($data['password'] > 12)) {
+			// check password length between 6-12
+			$this->session->set_flashdata('password_length_error', 'Password must be 6-12 characters');
+			$this->load_navbar();
+			$this->load->view('change_password_page');
 		} else {
+			$data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+
 			$this->_main->update_user($user_id, $data);
 
-			$this->my_account();
+			$this->homepage();
 			echo "NOTIFICATION: Password successfully reset";
 		}
 	}
@@ -610,6 +646,23 @@ class main extends CI_Controller
 			$this->session->set_flashdata("change_email_error","Email changed successfully");
 		} else {
 			$this->session->set_flashdata("change_email","Error: Email already exists");
+		}
+		redirect(base_url() . 'main/my_account');
+	}
+
+	public function change_username()
+	{
+		$data = array(
+			'username' => $this->input->post('change-username')
+		);
+
+		$user_id = $this->session->userdata('user_id');
+		if (!$this->_main->user_exists_username($data['username'])) {
+			$this->session->set_userdata($data);
+			$this->_main->update_user($user_id, $data);
+			$this->session->set_flashdata("change_username_error","Username changed successfully");
+		} else {
+			$this->session->set_flashdata("change_username","Error: Username already exists");
 		}
 		redirect(base_url() . 'main/my_account');
 	}

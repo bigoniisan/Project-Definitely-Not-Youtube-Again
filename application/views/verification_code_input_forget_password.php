@@ -2,9 +2,9 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 ?>
 
-<h1>Verify Email</h1>
+<h1>Password Change Authentication Code</h1>
 
-<?php echo form_open('main/verify_email_forget_password')?>
+<?php echo form_open('main/verify_password_change_authentication_code')?>
 <form>
 	<label>Please enter your verification code:</label>
 	<br/>
@@ -12,4 +12,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<br>
 	<input type="submit" id="submit" name="submit" value="Submit Code"/>
 </form>
-<?php echo $this->session->flashdata("email_verification"); ?>
+<?php echo $this->session->flashdata("code_verification"); ?>
+
+<br>
+<a href="forgot_password">Resend verification code</a>

@@ -27,9 +27,31 @@ class _main extends CI_Model
 		}
 	}
 
+	public function get_user_by_id($user_id)
+	{
+		$this->db->where('user_id', $user_id);
+		$query = $this->db->get('users');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
+
 	public function user_exists($email)
 	{
 		$this->db->where('email', $email);
+		$query = $this->db->get('users');
+		if ($query->num_rows() > 0) {
+			return $query->result_array();
+		} else {
+			return false;
+		}
+	}
+
+	public function user_exists_username($username)
+	{
+		$this->db->where('username', $username);
 		$query = $this->db->get('users');
 		if ($query->num_rows() > 0) {
 			return $query->result_array();
