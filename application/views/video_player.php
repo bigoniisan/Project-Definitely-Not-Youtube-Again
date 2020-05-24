@@ -33,14 +33,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <h1>Comments</h1>
 <?php echo form_open('main/submit_comment/' . $video_data['video_id']);?>
 <form>
+	<label for="show-name-as">Show my comment as: </label>
+	<select name="show-name-as" id="show-name-as" class="form-control" >
+		<option value="<?php if(isset($_SESSION['user_id'])) echo $_SESSION['name'];?>"><?php if(isset($_SESSION['user_id'])) echo $_SESSION['name'];?></option>
+		<option value="anonymous">Anonymous</option>
+	</select>
 	<input type="text" name="comment" placeholder="Add a comment" required/>
 	<input type="submit" name="submit" value="Comment"/>
 </form>
 
+
 <?php if (isset($comments))
 foreach($comments as $comment): ?>
 <td>
-	<p><?php echo $comment['name'] . ' ' . $comment['date'];?></p>
+	<p><?php if($comment['is_anonymous']) {
+			echo "Anonymous";
+		} else {
+			echo $comment['name'];
+		}
+		echo ' ' . $comment['date'];
+	?></p>
 	<p><?php echo $comment['comment'];?></p>
 </td>
 

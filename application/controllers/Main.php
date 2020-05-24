@@ -645,6 +645,17 @@ class main extends CI_Controller
 	public function submit_comment($video_id)
 	{
 		if ($this->session->userdata('email') == '') {
+//			$data = array(
+//				// anonymous comments have user_id = -1
+//				'comment_id' => $this->_main->generate_comment_id(),
+//				'video_id' => $video_id,
+//				'user_id' => '-1',
+//				'name' => 'Anonymous',
+//				'comment' => $this->input->post('comment'),
+//				'date' => date('Y-m-d H:i:s')
+//			);
+//			$this->_main->insert_comment($data);
+
 			$this->session->set_flashdata('error', 'You must be logged in to do that');
 			$this->video_player($video_id);
 		} else {
@@ -654,8 +665,13 @@ class main extends CI_Controller
 				'user_id' => $this->session->userdata('user_id'),
 				'name' => $this->session->userdata('name'),
 				'comment' => $this->input->post('comment'),
-				'date' => date('Y-m-d H:i:s')
+				'date' => date('Y-m-d H:i:s'),
+				'is_anonymous' => FALSE
 			);
+			$show_name_as = $this->input->post('show-name-as');
+			if ($show_name_as == 'anonymous') {
+				$data['is_anonymous'] = TRUE;
+			}
 			$this->_main->insert_comment($data);
 
 			$this->video_player($video_id);
