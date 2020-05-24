@@ -167,6 +167,8 @@ class main extends CI_Controller
 		$this->session->unset_userdata('verification_code');
 		$this->session->unset_userdata('security_questions_set');
 
+//		$this->session->sess_destroy();
+
 		$this->homepage();
 	}
 
@@ -526,88 +528,138 @@ class main extends CI_Controller
 		}
 	}
 
+//	public function upload_video()
+//	{
+//		$data = array();
+//
+//		$files = $_FILES['userfile'];
+////		print_r($_FILES['userfile']['name'][0]);
+////		print_r($_FILES['userfile']['name'][1]);
+////		print_r($_FILES['userfile']['name'][2]);
+//
+//		$count = count($_FILES['userfile']['name']);
+//		for ($i = 0; $i < $count; $i++) {
+////			echo $i;
+////			echo ("name: ".$_FILES['userfiles']['name'][$i]);
+//			if (!empty($_FILES['userfile']['name'][$i])) {
+//				// Define new $_FILES array - $_FILES['file']
+////				$_FILES['file']['name'] = $_FILES['userfile']['name'][$i];
+////				$_FILES['file']['type'] = $_FILES['userfile']['type'][$i];
+////				$_FILES['file']['tmp_name'] = $_FILES['userfile']['tmp_name'][$i];
+////				$_FILES['file']['error'] = $_FILES['userfile']['error'][$i];
+////				$_FILES['file']['size'] = $_FILES['userfile']['size'][$i];
+//
+//				$config['upload_path'] = './uploads';
+//				$config['allowed_types'] = 'mp4';
+//				$config['file_name'] = $_FILES['userfile']['name'][$i];
+//
+//				$this->load->library('upload', $config);
+//
+//				if (!$this->upload->do_upload()) {
+//					echo "unsuccessful upload";
+//					$this->session->set_flashdata('error', $this->upload->display_errors());
+//					break;
+//				} else {
+//					echo "successful upload";
+//					$upload_data = $this->upload->data();
+//					$data[$i] = array(
+//						'video_id' => $this->_main->generate_video_id(),
+//						'video_name' => $upload_data['file_name'],
+//						'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+//						'upload_date' => date('Y-m-d H:i:s'),
+//						'video_likes' => 0,
+//						'video_dislikes' => 0
+//					);
+//					$this->_main->insert_video($data[$i]);
+//				}
+//			} else {
+//				echo "big problem";
+//				$this->session->set_flashdata('error', 'One or more files do not have a name');
+//				break;
+//			}
+//		}
+//		echo "count: ".$i;
+//		$this->load_navbar();
+//		$this->load->view('upload', $data);
+//	}
+
 	public function upload_video()
 	{
-		$data = array();
+		$config['upload_path'] = './uploads';
+		$config['allowed_types'] = 'mp4';
 
-		$count = count($_FILES['userfiles']['name']);
-		for ($i = 0; $i < $count; $i++) {
+		$this->load->library('upload', $config);
 
-			if (!empty($_FILES['userfiles']['name'][$i])) {
-				// Define new $_FILES array - $_FILES['file']
-				$_FILES['file']['name'] = $_FILES['userfiles']['name'][$i];
-				$_FILES['file']['type'] = $_FILES['userfiles']['type'][$i];
-				$_FILES['file']['tmp_name'] = $_FILES['userfiles']['tmp_name'][$i];
-				$_FILES['file']['error'] = $_FILES['userfiles']['error'][$i];
-				$_FILES['file']['size'] = $_FILES['userfiles']['size'][$i];
-
-				$config['upload_path'] = './uploads';
-				$config['allowed_types'] = 'mp4';
-				$config['file_name'] = $_FILES['userfiles']['name'][$i];
-
-				$this->load->library('upload', $config);
-
-				if (!$this->upload->do_upload('file')) {
-					$this->session->set_flashdata('error', $this->upload->display_errors());
-					break;
-				} else {
-					$upload_data = $this->upload->data();
-					$data[$i] = array(
-						'video_id' => $this->_main->generate_video_id(),
-						'video_name' => $upload_data['file_name'],
-						'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
-						'upload_date' => date('Y-m-d H:i:s'),
-						'video_likes' => 0,
-						'video_dislikes' => 0
-					);
-					$this->_main->insert_video($data[$i]);
-				}
-			} else {
-				$this->session->set_flashdata('error', 'One or more files do not have a name');
-				break;
-			}
+		if (!$this->upload->do_upload()) {
+			$this->session->set_flashdata('error', $this->upload->display_errors());
+			$this->upload();
+		} else {
+			$upload_data = $this->upload->data();
+			$data = array(
+				'video_id' => $this->_main->generate_video_id(),
+				'video_name' => $upload_data['file_name'],
+				'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+				'upload_date' => date('Y-m-d H:i:s'),
+				'video_likes' => 0,
+				'video_dislikes' => 0
+			);
+			$this->_main->insert_video($data);
+			$this->upload();
 		}
-		$this->load_navbar();
-		$this->load->view('upload', $data);
 	}
 
 	public function like_video($video_id)
 	{
-		$query = $this->_main->get_video_likes($video_id);
-		$video_likes = $query[0]['video_likes'];
-		$data = array(
-			'video_likes' => $video_likes + 1
-		);
-		$this->_main->update_video($video_id, $data);
+		if ($this->session->userdata('email') == '') {
+			$this->session->set_flashdata('error', 'You must be logged in to do that');
+			$this->video_player($video_id);
+		} else {
+			$query = $this->_main->get_video_likes($video_id);
+			$video_likes = $query[0]['video_likes'];
+			$data = array(
+				'video_likes' => $video_likes + 1
+			);
+			$this->_main->update_video($video_id, $data);
 
-		$this->video_player($video_id);
+			$this->video_player($video_id);
+		}
 	}
 
 	public function dislike_video($video_id)
 	{
-		$query = $this->_main->get_video_dislikes($video_id);
-		$video_dislikes = $query[0]['video_dislikes'];
-		$data = array(
-			'video_dislikes' => $video_dislikes + 1
-		);
-		$this->_main->update_video($video_id, $data);
+		if ($this->session->userdata('email') == '') {
+			$this->session->set_flashdata('error', 'You must be logged in to do that');
+			$this->video_player($video_id);
+		} else {
+			$query = $this->_main->get_video_dislikes($video_id);
+			$video_dislikes = $query[0]['video_dislikes'];
+			$data = array(
+				'video_dislikes' => $video_dislikes + 1
+			);
+			$this->_main->update_video($video_id, $data);
 
-		$this->video_player($video_id);
+			$this->video_player($video_id);
+		}
 	}
 
 	public function submit_comment($video_id)
 	{
-		$data = array(
-			'comment_id' => $this->_main->generate_comment_id(),
-			'video_id' => $video_id,
-			'user_id' => $this->session->userdata('user_id'),
-			'name' => $this->session->userdata('name'),
-			'comment' => $this->input->post('comment'),
-			'date' => date('Y-m-d H:i:s')
-		);
-		$this->_main->insert_comment($data);
+		if ($this->session->userdata('email') == '') {
+			$this->session->set_flashdata('error', 'You must be logged in to do that');
+			$this->video_player($video_id);
+		} else {
+			$data = array(
+				'comment_id' => $this->_main->generate_comment_id(),
+				'video_id' => $video_id,
+				'user_id' => $this->session->userdata('user_id'),
+				'name' => $this->session->userdata('name'),
+				'comment' => $this->input->post('comment'),
+				'date' => date('Y-m-d H:i:s')
+			);
+			$this->_main->insert_comment($data);
 
-		$this->video_player($video_id);
+			$this->video_player($video_id);
+		}
 	}
 
 	public function image_upload()

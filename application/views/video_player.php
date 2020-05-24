@@ -22,6 +22,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<input type="submit" name="dislike-video" value="Dislike"/>
 </form>
 
+<a href="http://www.facebook.com/sharer.php?s=100
+<?php echo "&p[summary]=testetsetestset";?>
+<?php echo "&p[url]=".base_url()."main/video_player/".$video_data['video_id'];?>
+<?php echo "&p[title]=TEST";?>
+">
+	Share to Facebook
+</a>
+
 <h1>Comments</h1>
 <?php echo form_open('main/submit_comment/' . $video_data['video_id']);?>
 <form>
@@ -41,4 +49,6 @@ foreach($comments as $comment): ?>
 <?php if (!isset($video_data)) {
 	echo "Error: No video with that ID found.";
 }?>
+
+<?php echo $this->session->flashdata('error');?>
 
