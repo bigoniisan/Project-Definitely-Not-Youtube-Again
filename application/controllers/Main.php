@@ -645,17 +645,6 @@ class main extends CI_Controller
 	public function submit_comment($video_id)
 	{
 		if ($this->session->userdata('email') == '') {
-//			$data = array(
-//				// anonymous comments have user_id = -1
-//				'comment_id' => $this->_main->generate_comment_id(),
-//				'video_id' => $video_id,
-//				'user_id' => '-1',
-//				'name' => 'Anonymous',
-//				'comment' => $this->input->post('comment'),
-//				'date' => date('Y-m-d H:i:s')
-//			);
-//			$this->_main->insert_comment($data);
-
 			$this->session->set_flashdata('error', 'You must be logged in to do that');
 			$this->video_player($video_id);
 		} else {
@@ -740,7 +729,12 @@ class main extends CI_Controller
 		$data = array(
 			'name' => $this->input->post('change-name')
 		);
+//		if (!preg_match('([a-zA-Z])', $data['name'])) {
+//			$this->session->set_flashdata("change_name_error","Invalid characters in name");
+//			redirect(base_url() . 'main/my_account');
+//		} else {
 
+//		}
 		$user_id = $this->session->userdata('user_id');
 		$this->_main->update_user($user_id, $data);
 		$this->session->set_userdata($data);

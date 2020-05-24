@@ -50,7 +50,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 <?php echo form_open('main/change_username'); ?>
 	<form>
 		<label>Change Username</label>
-		<input type="email" id="change-username" name="change-username"/>
+		<input type="text" id="change-username" name="change-username"/>
 		<input type="submit" name="submit" value="Change Username"/>
 	</form>
 <?php echo $this->session->flashdata("change_username_error"); ?>
@@ -78,8 +78,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			e.preventDefault();
 			if($('#change-name-ajax').val() == '') {
 				alert("Error: name cannot be empty");
-			}
-			else {
+			} else if (!/^[A-Za-z]+$/.test($('#change-name-ajax').val())) {
+				alert("Error: name has invalid characters")
+			} else {
 				$.ajax({
 					url:"<?php echo base_url(); ?>main/change_name_ajax",
 					method:"POST",
