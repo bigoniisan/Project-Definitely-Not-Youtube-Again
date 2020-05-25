@@ -599,7 +599,6 @@ class main extends CI_Controller
 	{
 		if ($this->session->userdata('email') == '') {
 			$this->session->set_flashdata('error', 'You must be logged in to do that');
-			$this->video_player($video_id);
 		} else {
 			$query = $this->_main->get_video_likes($video_id);
 			$video_likes = $query[0]['video_likes'];
@@ -607,9 +606,8 @@ class main extends CI_Controller
 				'video_likes' => $video_likes + 1
 			);
 			$this->_main->update_video($video_id, $data);
-
-			$this->video_player($video_id);
 		}
+		$this->video_player($video_id);
 	}
 
 	public function dislike_video($video_id)
