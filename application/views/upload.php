@@ -1,5 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+
+if ($this->session->userdata('email') == '') {
+	redirect(base_url() . 'main/homepage');
+	echo "You must be logged in to access that page";
+}
 ?>
 
 <head>
@@ -7,12 +12,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<link rel="stylesheet" href="../../resources/dropzone.js">
 </head>
 
-<h1>Upload Video</h1>
+<h1>Upload Videos</h1>
 
 <?php echo form_open_multipart('main/upload_video'); ?>
 <form class="dropzone" id="fileupload">
-	<label>Upload Videos (MP4 Only)</label><br>
-	<input type="file" id="userfile" name="userfile" required /><br><br>
+	<label>Upload Videos (Supported file formats: mov, mpeg4, mp4, avi, wmv, mpegps, flv, 3gpp, webm, hevc)</label><br>
+	<input type="file" id="userfile[]" name="userfile[]" multiple required /><br><br>
 <!--	<label>Video Title (Required)</label><br>-->
 <!--	<input type="text" id="filename" name="filename" required />-->
 	<br><br>

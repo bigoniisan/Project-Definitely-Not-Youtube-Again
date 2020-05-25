@@ -167,8 +167,6 @@ class main extends CI_Controller
 		$this->session->unset_userdata('verification_code');
 		$this->session->unset_userdata('security_questions_set');
 
-//		$this->session->sess_destroy();
-
 		$this->homepage();
 	}
 
@@ -528,85 +526,74 @@ class main extends CI_Controller
 		}
 	}
 
-//	public function upload_video()
-//	{
-//		$data = array();
-//
-//		$files = $_FILES['userfile'];
-////		print_r($_FILES['userfile']['name'][0]);
-////		print_r($_FILES['userfile']['name'][1]);
-////		print_r($_FILES['userfile']['name'][2]);
-//
-//		$count = count($_FILES['userfile']['name']);
-//		for ($i = 0; $i < $count; $i++) {
-////			echo $i;
-////			echo ("name: ".$_FILES['userfiles']['name'][$i]);
-//			if (!empty($_FILES['userfile']['name'][$i])) {
-//				// Define new $_FILES array - $_FILES['file']
-////				$_FILES['file']['name'] = $_FILES['userfile']['name'][$i];
-////				$_FILES['file']['type'] = $_FILES['userfile']['type'][$i];
-////				$_FILES['file']['tmp_name'] = $_FILES['userfile']['tmp_name'][$i];
-////				$_FILES['file']['error'] = $_FILES['userfile']['error'][$i];
-////				$_FILES['file']['size'] = $_FILES['userfile']['size'][$i];
-//
-//				$config['upload_path'] = './uploads';
-//				$config['allowed_types'] = 'mp4';
-//				$config['file_name'] = $_FILES['userfile']['name'][$i];
-//
-//				$this->load->library('upload', $config);
-//
-//				if (!$this->upload->do_upload()) {
-//					echo "unsuccessful upload";
-//					$this->session->set_flashdata('error', $this->upload->display_errors());
-//					break;
-//				} else {
-//					echo "successful upload";
-//					$upload_data = $this->upload->data();
-//					$data[$i] = array(
-//						'video_id' => $this->_main->generate_video_id(),
-//						'video_name' => $upload_data['file_name'],
-//						'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
-//						'upload_date' => date('Y-m-d H:i:s'),
-//						'video_likes' => 0,
-//						'video_dislikes' => 0
-//					);
-//					$this->_main->insert_video($data[$i]);
-//				}
-//			} else {
-//				echo "big problem";
-//				$this->session->set_flashdata('error', 'One or more files do not have a name');
-//				break;
-//			}
-//		}
-//		echo "count: ".$i;
-//		$this->load_navbar();
-//		$this->load->view('upload', $data);
-//	}
-
 	public function upload_video()
 	{
-		$config['upload_path'] = './uploads';
-		$config['allowed_types'] = 'mp4';
+		$data = array();
 
-		$this->load->library('upload', $config);
+		$count = count($_FILES['userfile']['name']);
+		for ($i = 0; $i < $count; $i++) {
+			if (!empty($_FILES['userfile']['name'][$i])) {
+				// Define new $_FILES array - $_FILES['file']
+				$_FILES['file']['name'] = $_FILES['userfile']['name'][$i];
+				$_FILES['file']['type'] = $_FILES['userfile']['type'][$i];
+				$_FILES['file']['tmp_name'] = $_FILES['userfile']['tmp_name'][$i];
+				$_FILES['file']['error'] = $_FILES['userfile']['error'][$i];
+				$_FILES['file']['size'] = $_FILES['userfile']['size'][$i];
 
-		if (!$this->upload->do_upload()) {
-			$this->session->set_flashdata('error', $this->upload->display_errors());
-			$this->upload();
-		} else {
-			$upload_data = $this->upload->data();
-			$data = array(
-				'video_id' => $this->_main->generate_video_id(),
-				'video_name' => $upload_data['file_name'],
-				'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
-				'upload_date' => date('Y-m-d H:i:s'),
-				'video_likes' => 0,
-				'video_dislikes' => 0
-			);
-			$this->_main->insert_video($data);
-			$this->upload();
+				$config['upload_path'] = './uploads';
+				$config['allowed_types'] = 'mp4|mov|mpeg4|avi|wmv|mpegps|flv|3gpp|webm|hevc';
+
+				$this->load->library('upload', $config);
+
+				if (!$this->upload->do_upload('file')) {
+					echo "one or more unsuccessful uploads";
+					$this->session->set_flashdata('error', $this->upload->display_errors());
+				} else {
+					echo "successful upload";
+					$upload_data = $this->upload->data();
+					$data[$i] = array(
+						'video_id' => $this->_main->generate_video_id(),
+						'video_name' => $upload_data['file_name'],
+						'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+						'upload_date' => date('Y-m-d H:i:s'),
+						'video_likes' => 0,
+						'video_dislikes' => 0
+					);
+					$this->_main->insert_video($data[$i]);
+				}
+			} else {
+				echo "big problem";
+				$this->session->set_flashdata('error', 'One or more files do not have a name');
+			}
 		}
+		$this->load_navbar();
+		$this->load->view('upload', $data);
 	}
+
+//	public function upload_video()
+//	{
+//		$config['upload_path'] = './uploads';
+//		$config['allowed_types'] = 'mp4';
+//
+//		$this->load->library('upload', $config);
+//
+//		if (!$this->upload->do_upload()) {
+//			$this->session->set_flashdata('error', $this->upload->display_errors());
+//			$this->upload();
+//		} else {
+//			$upload_data = $this->upload->data();
+//			$data = array(
+//				'video_id' => $this->_main->generate_video_id(),
+//				'video_name' => $upload_data['file_name'],
+//				'filepath' => base_url() . 'uploads/' . $upload_data['file_name'],
+//				'upload_date' => date('Y-m-d H:i:s'),
+//				'video_likes' => 0,
+//				'video_dislikes' => 0
+//			);
+//			$this->_main->insert_video($data);
+//			$this->upload();
+//		}
+//	}
 
 	public function like_video($video_id)
 	{

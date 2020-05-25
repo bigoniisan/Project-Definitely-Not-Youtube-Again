@@ -1,5 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+
+if ($this->session->userdata('email') == '') {
+	redirect(base_url() . 'main/homepage');
+	echo "You must be logged in to access that page";
+}
 ?>
 
 <!DOCTYPE html>
